@@ -8,7 +8,7 @@ whenever the page is scrolled.  The line will disappear after a
 configurable number of milliseconds.  This help to keep track of reading
 position when scrolling a page at a time.
 
-https://addons.mozilla.org/en-US/firefox/addon/scrollhighlight
+https://addons.mozilla.org/en-US/firefox/addon/scroll-highlight
 
 
 
