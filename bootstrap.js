@@ -80,7 +80,9 @@ function unloadFromWindow(window) {
   window.dump('shAddon: unloading\n');
   for (i = 0, tabs = window.gBrowser.browsers.length; i < tabs; i += 1) {
     doc = window.gBrowser.getBrowserAtIndex(i).contentDocument;
-    doc.defaultView.clearTimeout(doc.shAddon.removalTimeoutHandle);
+    if (doc.shAddon && doc.shAddon.removalTimeoutHandle) {
+      doc.defaultView.clearTimeout(doc.shAddon.removalTimeoutHandle);
+    }
     window.dump('shAddon: unloaded listener\n');
   }
   window.gBrowser.removeEventListener("scroll",
