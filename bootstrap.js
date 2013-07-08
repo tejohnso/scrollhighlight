@@ -1,26 +1,30 @@
 /*global Components, APP_SHUTDOWN */
 "use strict";
-var Cc = Components.classes;
-var Ci = Components.interfaces;
+var Cc = Components.classes, Ci = Components.interfaces;
 
 function loadIntoWindow(window) {
-  var i, tabs, doc;
+  var i, tabs, doc, gb;
   if (!window.document.getElementById("tabbrowser-tabs")) { return; }
+  gb = window.gBrowser;
   window.dump('shAddon: loading into window\n');
-  window.gBrowser.shAddon = {};
-  window.gBrowser.shAddon.shListener = shListener;
-  window.gBrowser.addEventListener("scroll",
-    window.gBrowser.shAddon.shListener, false);
+
+  gb.shAddon = {};
+  gb.shAddon.shListener = shListener;
+  gb.shAddon.shInit = shInit;
+  gb.addEventListener("scroll", gb.shAddon.shListener, false);
+  gb.addEventListener("load", gb.shAddon.shInit, true); //load doesn't bubble
   window.dump('shAddon: loaded into window\n');
+
+  function shInit(e) {
+    if (e.target.nodeName !== "#document") {return;}
+    e.target.shAddon = {};
+    e.target.shAddon.lastStableY = e.target.defaultView.pageYOffset;
+  }
 
   function shListener(e) {
     var doc = e.target, win = doc.defaultView;
     doc.shAddon = (doc.shAddon || {});
     win.clearTimeout(doc.shAddon.removalTimeoutHandle);
-    if (!doc.shAddon.lastStableY) { //initial 
-      doc.shAddon.lastStableY = win.pageYOffset;
-      return;
-    }
     if (!doc.shAddon.shBar) {createBar(doc);}
     if (win.pageYOffset < doc.shAddon.lastStableY) { //going up
       if (doc.shAddon.lastY < win.pageYOffset) { //changed direction
@@ -72,22 +76,23 @@ function loadIntoWindow(window) {
 }
 
 function unloadFromWindow(window) {
-  var tabs, i, doc;
+  var tabs, i, doc, gb;
   if (!window) {
     return;
   }
+  gb = window.gBrowser;
   try{
   window.dump('shAddon: unloading\n');
-  for (i = 0, tabs = window.gBrowser.browsers.length; i < tabs; i += 1) {
-    doc = window.gBrowser.getBrowserAtIndex(i).contentDocument;
+  for (i = 0, tabs = gb.browsers.length; i < tabs; i += 1) {
+    doc = gb.getBrowserAtIndex(i).contentDocument;
     if (doc.shAddon && doc.shAddon.removalTimeoutHandle) {
       doc.defaultView.clearTimeout(doc.shAddon.removalTimeoutHandle);
     }
     window.dump('shAddon: unloaded listener\n');
   }
-  window.gBrowser.removeEventListener("scroll",
-     window.gBrowser.shAddon.shListener);
-  delete window.gBrowser.shAddon;
+  gb.removeEventListener("scroll", gb.shAddon.shListener);
+  gb.removeEventListener("load", gb.shAddon.shInit);
+  delete gb.shAddon;
   window.dump('shAddon: unloaded\n');
   }catch(e){window.dump(e);}
 }
