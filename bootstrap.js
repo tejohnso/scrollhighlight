@@ -1,4 +1,5 @@
-/*global Components, APP_SHUTDOWN */
+/*global Components, APP_SHUTDOWN, shInit: true, shListener: true,
+  removeBar: true, createBar: true, fadeOut: true */
 "use strict";
 var Cc = Components.classes, Ci = Components.interfaces;
 
@@ -25,7 +26,10 @@ function loadIntoWindow(window) {
     var doc = e.target, win = doc.defaultView;
     doc.shAddon = (doc.shAddon || {});
     win.clearTimeout(doc.shAddon.removalTimeoutHandle);
-    if (!doc.shAddon.shBar) {createBar(doc);}
+    if (!doc.shAddon.shBar || !doc.getElementById('scrollHighlightBar')) {
+      createBar(doc);
+    }
+
     if (win.pageYOffset < doc.shAddon.lastStableY) { //going up
       if (doc.shAddon.lastY < win.pageYOffset) { //changed direction
         doc.shAddon.lastStableY = win.pageYOffset; //reset location
@@ -51,18 +55,19 @@ function loadIntoWindow(window) {
 
     function removeBar() {
       var el = doc.getElementById('scrollHighlightBar');
-      if (el) {fadeOut(el);}
       doc.shAddon.lastStableY = win.pageYOffset;
+      fadeOut(el);
   
       function fadeOut(el) {
-        if (el.style.opacity <= 0) {return;} 
+        if (el.style.opacity <= 0) {return;}
         el.style.opacity = el.style.opacity - 0.05;
         win.setTimeout(function() {fadeOut(el);}, 10);
       }
     }
 
     function createBar(doc) {
-      doc.shAddon.shBar = window.document.createElement('div');
+      doc.shAddon.shBar = doc
+        .getElementById('scrollHighlightBar') || doc.createElement('div');
       doc.shAddon.shBar.style.width = '100%';
       doc.shAddon.shBar.style.height = '3px';
       doc.shAddon.shBar.style.position = 'absolute';
